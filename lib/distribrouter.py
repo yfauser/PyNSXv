@@ -5,7 +5,6 @@ Created on 01.10.2014
 '''
 import httplib
 import base64
-import urllib2
 from PyNSXv.lib.xmlformater import CreateXML
 
 class DistribRouter:
@@ -15,8 +14,8 @@ class DistribRouter:
         self.creds= base64.urlsafe_b64encode(username + ':' + password)
         self.headers = {'Content-Type' : 'application/xml','Authorization' : 'Basic ' + self.creds }
     
-    def create(self, vdr_name, datacenter_id, vdr_cluster_id, vdr_datastore, vdr_mgmt_pg):
-        vdr_appliance_properties = [ {'resourcePoolId': vdr_cluster_id}, {'datastoreId': vdr_datastore}, {'vmHostname': vdr_name} ]
+    def create(self, datacenter_id, vdr_cluster_id, vdr_datastore, vdr_mgmt_pg):
+        vdr_appliance_properties = [ {'resourcePoolId': vdr_cluster_id}, {'datastoreId': vdr_datastore} ]
         vdr_appliance = [ {'appliance': vdr_appliance_properties} ]
         vdr_mgmt_interface_properties = [ {'connectedToId': vdr_mgmt_pg} ]
         
@@ -33,14 +32,14 @@ class DistribRouter:
         conn.request('POST', url, vdr_properties_xml, self.headers)
         response = conn.getresponse()
         if response.status != 201:
-            print str(response.status) + " Services Edge Not created..."
+            print str(response.status) + " Services Edge Not created..."  + str(response.read())
             exit(1)
         else:
             location = response.getheader('location', default=None)
             # The edgeID that is used in later calls to modify edge properties is returned in the location header
             split_result = location.split('/')
-            svc_edge_id = split_result[-1]
-            return svc_edge_id
+            vdr_edge_id = split_result[-1]
+            return vdr_edge_id
 
     def addif(self,edge_id,if_name,ls_id,if_ip,if_mask,if_type):
         ''' edge_id: This is the edge id as returned by the create method
@@ -65,10 +64,13 @@ class DistribRouter:
         
         url='https://' + self.nsx_manager + '/api/4.0/edges/' + edge_id + '/interfaces/?action=patch'
         
-        req = urllib2.Request(url=url,data=vdr_if_properties_xml,headers=self.headers)
-        urllib2.urlopen(req)
-        
-        return vdr_if_properties_xml
+        conn = httplib.HTTPSConnection(self.nsx_manager, 443)
+        conn.request('POST', url, vdr_if_properties_xml, self.headers)
+        response = conn.getresponse()
+        if response.status != 200:
+            print str(response.status) + " Interface configuration failed..." + str(response.read())
+            exit(1)
+
     
     def addif_list(self, edge_id, if_list):
         # This method is used to configure multiple new interfaces in one shot by passing a list of interfaces containing the Interfaces properties
@@ -82,15 +84,16 @@ class DistribRouter:
                                         {'type': interface['if_type']}, 
                                         {'isConnected': 'true'},
                                         {'connectedToId': interface['ls_id']},]
-            vdr_interfaces.append( {'inferface': vdr_interface_properties} )
+            vdr_interfaces.append( {'interface': vdr_interface_properties} )
             
         vdr_if_properties_xml = CreateXML("interfaces", vdr_interfaces)
             
         url='https://' + self.nsx_manager + '/api/4.0/edges/' + edge_id + '/interfaces/?action=patch'
-        print vdr_if_properties_xml
-        req = urllib2.Request(url=url,data=vdr_if_properties_xml,headers=self.headers)
-        urllib2.urlopen(req)
-        return vdr_if_properties_xml
-            
-            
+        
+        conn = httplib.HTTPSConnection(self.nsx_manager, 443)
+        conn.request('POST', url, vdr_if_properties_xml, self.headers)
+        response = conn.getresponse()
+        if response.status != 200:
+            print str(response.status) + " Interface configuration failed..." + str(response.read())
+            exit(1)
 
