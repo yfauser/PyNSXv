@@ -45,7 +45,7 @@ usage: set the ls control plane mode, values are `UNICAST_MODE`, `MULTICAST_MODE
 usage: currently always set to vdnscope-1, default: vdnscope-1
 
 **return value**
-The return value with be the logical switch ID, e.g. `virtualwire-57virtualwire-57`
+The return value with be the logical switch ID, e.g. `virtualwire-57`
 
 ## Distributed Router Class `/lib/distribrouter.py`
 
