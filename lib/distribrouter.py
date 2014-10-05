@@ -96,4 +96,49 @@ class DistribRouter:
         if response.status != 200:
             print str(response.status) + " Interface configuration failed..." + str(response.read())
             exit(1)
-
+    
+    def enableOSPF(self,edge_id, router_id, protocol_address, forwarding_address, ospf_area, 
+                   ospf_vnic_index, ospf_vnic_helloInterval="10", ospf_vnic_deadInterval="40", ospf_vnic_priority="128",
+                   ospf_vnic_cost='none',  ospf_area_type="normal", authentication_type="none", authentication_password="vmware123"):
+        ''' This method is used to configure the OSPF Area and the Interfaces used for/with OSPF
+        edge_id: This is the edge id as returned by the create method
+        router_id: This is the OSPF Router ID for the OSPF Database, usually this is set to be the same IP as the protocol_adress.
+        protocol_address: This is the IP that the VDR uses to source OSPF Hellos, LSRs, etc. Basically this is the IP of the logical router control VM
+        forwarding_address: This is the next hop IP for the advertised routes. This is the shared VIP of the VDR in the hypervisor kernel modules
+        ospf_area: This is the OSPF Area ID, Mandatory and unique. Valid values are 0-4294967295
+        ospf_vnic_index: This is the vnic Index of the VDR Uplink used for OSPF. With the VDR only one Interface can be used as an OSPF Interface. Example: '0'
+        ospf_vnic_helloInterval: Optional. Default 10 sec. Valid values are 1-255
+        ospf_vnic_deadInterval:  Optional. Default 40 sec. Valid values are 1-65535
+        ospf_vnic_priority: Optional. Default 128. Valid values are 0-255
+        ospf_vnic_cost: Optional. Auto based on interface speed. Valid values are 1-65535
+        ospf_area_type: Optional. Default is normal. Valid inputs are normal, stub
+        authentication_type: Optional. When not specified, its "none" authentication. Valid values are none, password , md5
+        authentication_password: Value as per the type of authentication
+        '''
+        ospf_interface_config = [{'vnic': ospf_vnic_index}, 
+                                 {'areaId': ospf_area}, 
+                                 {'helloInterval': ospf_vnic_helloInterval},
+                                 {'deadInterval': ospf_vnic_deadInterval},
+                                 {'priority': ospf_vnic_priority}]
+        if ospf_vnic_cost != 'none': ospf_interface_config.append( {'cost': ospf_vnic_cost} )
+        ospf_interfaces = [ {'ospfInterface': ospf_interface_config} ]
+        
+        routing_global_config = [ {'routerId' : router_id } ]
+        
+        ospf_authentication_config = [ {'type': authentication_type} ]
+        if authentication_type != 'none': ospf_authentication_config.append( {'value': authentication_password} )
+        
+        ospf_area_config = [ {'ospfArea': [ {'areaId': ospf_area}, {'type': ospf_area_type}, {'authentication': ospf_authentication_config} ] } ]
+        ospf_config = [ {'enabled': 'true'}, {'forwardingAddress': forwarding_address}, {'protocolAddress': protocol_address}, {'ospfAreas': ospf_area_config}, {'ospfInterfaces': ospf_interfaces} ]
+        
+        ospf_prop_xml = CreateXML("routing", [ {'routingGlobalConfig': routing_global_config}, {'ospf': ospf_config} ] )
+        
+        url='https://' + self.nsx_manager + '/api/4.0/edges/' + edge_id + '/routing/config'
+        
+        conn = httplib.HTTPSConnection(self.nsx_manager, 443)
+        conn.request('PUT', url, ospf_prop_xml, self.headers)
+        response = conn.getresponse()
+        if response.status != 204:
+            print str(response.status) + " OSPF configuration failed..." + str(response.read())
+            exit(1)
+        
