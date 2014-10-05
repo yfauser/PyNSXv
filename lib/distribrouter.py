@@ -111,7 +111,7 @@ class DistribRouter:
         ospf_vnic_deadInterval:  Optional. Default 40 sec. Valid values are 1-65535
         ospf_vnic_priority: Optional. Default 128. Valid values are 0-255
         ospf_vnic_cost: Optional. Auto based on interface speed. Valid values are 1-65535
-        ospf_area_type: Optional. Default is normal. Valid inputs are normal, stub
+        ospf_area_type: Optional. Default is normal. Valid inputs are normal, nssa
         authentication_type: Optional. When not specified, its "none" authentication. Valid values are none, password , md5
         authentication_password: Value as per the type of authentication
         '''

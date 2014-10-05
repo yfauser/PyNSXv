@@ -103,4 +103,54 @@ class ServicesRouter:
         if response.status != 204:
             print str(response.status) + " Interface configuration failed..." + str(response.read())
             exit(1)
-            
+    
+    def addOSPFArea(self, edge_id, router_id, ospf_area, ospf_area_type="normal", authentication_type="none", authentication_password="vmware123"):
+        ''' This method is used to configure the OSPF Areas and with it enabled OSPF on the Edge Services Gateway
+        edge_id: This is the edge id as returned by the create method
+        router_id: This is the OSPF Router ID for the OSPF Database, usually this is set to be the same IP as one of the Interfaces (e.g. the Backbone Area Interface).
+        ospf_area: This is the OSPF Area ID, Mandatory and unique. Valid values are 0-4294967295
+        ospf_area_type: Optional. Default is normal. Valid inputs are normal, nssa
+        authentication_type: Optional. When not specified, its "none" authentication. Valid values are none, password , md5
+        authentication_password: Value as per the type of authentication
+        '''
+        routing_global_config = [ {'routerId' : router_id } ]
+        ospf_authentication_config = [ {'type': authentication_type} ]
+        if authentication_type != 'none': ospf_authentication_config.append( {'value': authentication_password} )
+        
+        ospf_area_config = [ {'ospfArea': [ {'areaId': ospf_area}, {'type': ospf_area_type}, {'authentication': ospf_authentication_config} ] } ]
+        ospf_config = [ {'enabled': 'true'}, {'ospfAreas': ospf_area_config} ]
+        
+        ospf_prop_xml = CreateXML("routing", [ {'routingGlobalConfig': routing_global_config}, {'ospf': ospf_config} ] )
+        
+        url='https://' + self.nsx_manager + '/api/4.0/edges/' + edge_id + '/routing/config'
+        
+        conn = httplib.HTTPSConnection(self.nsx_manager, 443)
+        conn.request('PUT', url, ospf_prop_xml, self.headers)
+        response = conn.getresponse()
+        if response.status != 204:
+            print str(response.status) + " OSPF configuration failed..." + str(response.read())
+            exit(1)
+    
+    def addOSPFArealist(self, edge_id, router_id, ospf_area_list):
+        #This method is used to configure multiple OSPF Areas with one method call by supplying a list of dictionaries containing Area definitions
+        routing_global_config = [ {'routerId' : router_id } ]
+        ospf_areas = []
+        for ospf_area in ospf_area_list:
+            if ('authentication_type') not in ospf_area: ospf_area['authentication_type'] = 'none'
+            if ('ospf_area_type') not in ospf_area: ospf_area['ospf_area_type'] = 'normal'
+            ospf_authentication_config = [ {'type': ospf_area['authentication_type']} ]
+            if ospf_area['authentication_type'] != 'none': ospf_authentication_config.append( {'value': ospf_area['authentication_password'] } )
+            ospf_areas.append( {'ospfArea': [ {'areaId': ospf_area['ospf_area']}, {'type': ospf_area['ospf_area_type']}, {'authentication': ospf_authentication_config} ] } )
+        
+        ospf_config = [ {'enabled': 'true'}, {'ospfAreas': ospf_areas} ]
+        
+        ospf_prop_xml = CreateXML("routing", [ {'routingGlobalConfig': routing_global_config}, {'ospf': ospf_config} ] )
+        
+        url='https://' + self.nsx_manager + '/api/4.0/edges/' + edge_id + '/routing/config'
+        
+        conn = httplib.HTTPSConnection(self.nsx_manager, 443)
+        conn.request('PUT', url, ospf_prop_xml, self.headers)
+        response = conn.getresponse()
+        if response.status != 204:
+            print str(response.status) + " OSPF configuration failed..." + str(response.read())
+            exit(1)
