@@ -7,7 +7,7 @@ from PyNSXv.lib.distribrouter import DistribRouter
 
 vdr1 = DistribRouter(nsx_manager="192.168.178.211")
 # addif will create one single interface and attach it
-vdr1.addif(edge_id="edge-74", if_name="edge-64-interface0", ls_id="virtualwire-56", if_ip="172.16.101.1", if_mask="255.255.255.0", if_type="uplink")
+vdr1.addif(edge_id="edge-74", if_name="edge-74-interface0", ls_id="virtualwire-56", if_ip="172.16.101.1", if_mask="255.255.255.0", if_type="uplink")
 
 # addif_list can be used to create multiple Interface in one shot by passing a List of Interfaces with their properties as dictionary 
 if_dict_int1 = {'if_name': 'edge-74-interface1',
