@@ -8,14 +8,13 @@ import xml.etree.ElementTree as et
 
 
 class Session:
-    def __init__(self, manager, username='admin', password='default', debug=False, verify=False,
-                 protocol='https', base='/api/2.0'):
+    def __init__(self, manager, username='admin', password='default', debug=False, verify=False, protocol='https'):
         self._manager = manager
         self._username = username
         self._password = password
         self._debug = debug
         self._verify = verify
-        self._base = protocol + '://' + manager + base
+        self._base = protocol + '://' + manager
         self._session = requests.Session()
         self._session.verify = self._verify
         self._session.auth = (self._username, self._password)
@@ -35,21 +34,31 @@ class Session:
             root = et.Element(key)
             for i in data[key]:
                 et.SubElement(root, i.keys()[0]).text = i[i.keys()[0]]
+
             if self._debug:
                 et.dump(root)
             data = et.tostring(root)
+
         response = self._session.request(method, self._base + path, headers=headers, data=data)
         response.raise_for_status()
         content = response.content
-        if self._debug:
+
+        try:
+            if self._debug:
+                if response.headers['Content-Type'] == 'application/xml':
+                    print md.parseString(content).toprettyxml()
+                else:
+                    print content
+        except Exception as e:
+            pass
+
+        try:
             if response.headers['Content-Type'] == 'application/xml':
-                print md.parseString(content).toprettyxml()
+                return et.fromstring(content)
             else:
-                print content
-        if response.headers['Content-Type'] == 'application/xml':
-            return et.fromstring(content)
-        else:
-            return content
+                return content
+        except Exception as e:
+            pass
 
     def get_from_xml_string(self, xml_string, match_type, match_key, match_value, get):
         root = et.fromstring(xml_string)
