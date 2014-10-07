@@ -36,7 +36,6 @@ class Session:
             for i in data[key]:
                 et.SubElement(root, i.keys()[0]).text = i[i.keys()[0]]
             if self._debug:
-                print "XML: "
                 et.dump(root)
             data = et.tostring(root)
         response = self._session.request(method, self._base + path, headers=headers, data=data)

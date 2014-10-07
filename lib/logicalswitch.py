@@ -1,37 +1,28 @@
-'''
-Created on 30.09.2014
-
-@author: yfauser
-'''
-import urllib2
-import base64
-from PyNSXv.lib.xmlformater import CreateXML
+__author__ = 'asteer'
 
 class LogicalSwitch:
-    
-    def __init__(self, nsx_manager, username="admin", password="default"):
-        self.nsx_manager = nsx_manager
-        self.creds= base64.urlsafe_b64encode(username + ':' + password)
-        self.headers = {'Content-Type' : 'application/xml','Authorization' : 'Basic ' + self.creds }
-    
-    def create(self,ls_name,
-               ls_description="Created by PyNSXv, description was not set",
-               ls_cpmode="UNICAST_MODE", vdn_scope="vdnscope-1"):
-        
-        url='https://' + self.nsx_manager + '/api/2.0/vdn/scopes/' + vdn_scope + '/virtualwires'
-        
-        ls_properties_xml = CreateXML("virtualWireCreateSpec",
-                                      [{'name': ls_name},
-                                       {'description': ls_description},
-                                       {'tenantId': "undefined"},
-                                       {'controlPlaneMode': ls_cpmode}])
-        
-        req = urllib2.Request(url=url,data=ls_properties_xml,headers=self.headers)
-        response=urllib2.urlopen(req)
-        ls_id=response.read()
+    def __init__(self, session):
+        self._session = session
 
-        return ls_id
+    def _request(self, method, uri, **kwargs):
+        return self._session.do_request(method, uri, **kwargs)
 
+    def get_all(self):
+        return self._request('GET', '/vdn/virtualwires')
 
+    def get_by_id(self, lswitch_id):
+        return self._request('GET', '/vdn/virtualwires/' + lswitch_id)
 
-    
+    def get_by_name(self, lswitch_name):
+        all_lswitches = self.get_all()
+        return self._session.get_from_xml_tree(all_lswitches, 'virtualWire', 'name', lswitch_name, 'objectId')
+
+    def create(self, scope_name, name, description='A Logical Switch', tenantId=None, controlPlaneMode=None):
+        scope_id = self._session.networkScope.get_by_name(scope_name)[0]
+        data = {'virtualWireCreateSpec':[]}
+        data['virtualWireCreateSpec'].append({'name': name})
+        data['virtualWireCreateSpec'].append({'description': description})
+        data['virtualWireCreateSpec'].append({'tenantId': tenantId})
+        if controlPlaneMode:
+            data['virtualWireCreateSpec'].append({'controlPlaneMode': controlPlaneMode})
+        return self._request('POST', '/vdn/scopes/' + scope_id + '/virtualwires', data=data)
