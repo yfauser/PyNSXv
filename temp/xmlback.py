@@ -15,5 +15,10 @@ print edge_interfaces_properties
 
 test_dict = {}
 
+def get_generic(xml_string, type, match_key, match_value, get):
+    root = xml.etree.ElementTree.fromstring(xml)
+    for i in root.findall(type):
+        if i.find(match_key).text == match_value:
+            return i.find(get).text
 
-
+print get_generic(xml_content, 'interface', 'connectedToName', 'dvport-vlan-1', 'index')
