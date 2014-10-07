@@ -208,7 +208,6 @@ class DistribRouter:
             relay_agents.append({'relayAgent': [ {'vnicIndex': relay_agent_vnic_index} ] })
         
         dhcp_relay_xml = CreateXML("relay", [{'relayServer': dhcp_server_ips} , {'relayAgents': relay_agents}] )
-        print dhcp_relay_xml
         
         url='https://' + self.nsx_manager + '/api/4.0/edges/' + edge_id + '/dhcp/config/relay'
         
