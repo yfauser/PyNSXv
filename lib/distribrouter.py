@@ -192,4 +192,33 @@ class DistribRouter:
             print str(response.status) + " Static Routing configuration failed..." + str(response.read())
             exit(1)
         
-                
+    def DHCPrelay(self, edge_id, dhcp_server_list, interface_index_list):
+        ''' This method configures the DHCP Relay functionality on the NSX VDR
+        NOTE: This feature is only available from NSXv 6.1 onwards
+        edge_id: This is the edge id as returned by the create method
+        dhcp_server_list: This is a List of DHCP Server to send DHCP requests to
+        interface_index_list: This is a list of Interface Indexes were the DHCP Relay functionality should be enabled on
+        '''
+        dhcp_server_ips = []
+        for dhcp_server in dhcp_server_list:
+            dhcp_server_ips.append({'ipAddress': dhcp_server})
+        
+        relay_agents = []
+        for relay_agent_vnic_index in interface_index_list:
+            relay_agents.append({'relayAgent': [ {'vnicIndex': relay_agent_vnic_index} ] })
+        
+        dhcp_relay_xml = CreateXML("relay", [{'relayServer': dhcp_server_ips} , {'relayAgents': relay_agents}] )
+        print dhcp_relay_xml
+        
+        url='https://' + self.nsx_manager + '/api/4.0/edges/' + edge_id + '/dhcp/config/relay'
+        
+        conn = httplib.HTTPSConnection(self.nsx_manager, 443)
+        conn.request('PUT', url, dhcp_relay_xml, self.headers)
+        response = conn.getresponse()
+        if response.status != 204:
+            print str(response.status) + " DHCP Relay configuration failed..." + str(response.read())
+            exit(1)
+        
+        
+             
+        
