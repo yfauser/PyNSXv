@@ -5,6 +5,8 @@ Created on 30.09.2014
 '''
 import xml.etree.ElementTree as ET
 
+# TODO - fork branch
+
 def CreateXML(root_object,parameter_list):
     xml_root_object = ET.Element(root_object)
     ParseList(xml_root_object,parameter_list)
@@ -22,7 +24,7 @@ def ParseList(xml_root_object,parameter_list):
         elif type(subitem[xml_subitem_name]) is list:
             xml_subitem = ET.SubElement(xml_root_object,xml_subitem_name)
             ParseList(xml_subitem,subitem[xml_subitem_name])
-    
+
 def ReadEdgeInterfaceXML(xml_string):
     # This will read the xml string returned by the interface creation for Edges and return a List with subitems in Lists and dicts
     root = ET.fromstring(xml_string)
