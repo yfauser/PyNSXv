@@ -15,10 +15,10 @@ print edge_interfaces_properties
 
 test_dict = {}
 
-def get_generic(xml_string, type, match_key, match_value, get):
+def get_generic(xml_string, match_type, match_key, match_value, get):
     response = []
     root = xml.etree.ElementTree.fromstring(xml_string)
-    for i in root.findall(type):
+    for i in root.findall(match_type):
         if i.find(match_key).text == match_value:
             response.append(i.find(get).text)
     return response
