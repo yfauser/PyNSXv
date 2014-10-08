@@ -14,18 +14,19 @@ class LogicalSwitch:
     def get_by_id(self, lswitch_id):
         return self._request('GET', '/api/2.0/vdn/virtualwires/' + lswitch_id)
 
-    def get_by_name(self, lswitch_name):
+    def get_id_by_name(self, lswitch_name):
         all_lswitches = self.get_all()
         return self._session.get_from_xml_tree(all_lswitches, 'virtualWire', 'name', lswitch_name, 'objectId')
 
-    def create(self, scope_name, name, description='A Logical Switch', tenantId=None, controlPlaneMode=None):
-        scope_id = self._session.networkScope.get_by_name(scope_name)[0]
+    def create(self, scope_name, name, description='A Logical Switch', tenantId='undefined', controlPlaneMode=None):
+        scope_id = self._session.networkScope.get_id_by_name(scope_name)[0]
         data = {'virtualWireCreateSpec':[]}
         data['virtualWireCreateSpec'].append({'name': name})
         data['virtualWireCreateSpec'].append({'description': description})
         data['virtualWireCreateSpec'].append({'tenantId': tenantId})
         if controlPlaneMode:
             data['virtualWireCreateSpec'].append({'controlPlaneMode': controlPlaneMode})
+
         return self._request('POST', '/api/2.0/vdn/scopes/' + scope_id + '/virtualwires', data=data)
 
     def delete(self, lswitch_id):

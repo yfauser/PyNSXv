@@ -8,7 +8,7 @@ default_transport_zone_name = 'LocalTransportZone'
 s = session.Session('172.17.100.109', debug=True)
 
 # Create a new logical switch
-lswitch_id = s.logicalSwitch.create(default_transport_zone_name, 'new-lswitch10')
+lswitch_xml_tree = s.logicalSwitch.create(default_transport_zone_name, 'new-lswitch10')
 
 # And then delete it...
-print s.logicalSwitch.delete(lswitch_id)
+s.logicalSwitch.delete(lswitch_xml_tree.find('objectId').text)
