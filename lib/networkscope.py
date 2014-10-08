@@ -16,4 +16,4 @@ class NetworkScope:
 
     def get_id_by_name(self, scope_name):
         all_scopes = self.get_all()
-        return self._session.get_from_xml_tree(all_scopes, 'vdnScope', 'name', scope_name, 'objectId')
+        return self._session.getFromXmlTree(all_scopes, 'vdnScope', 'name', scope_name, 'objectId')

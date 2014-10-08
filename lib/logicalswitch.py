@@ -16,7 +16,7 @@ class LogicalSwitch:
 
     def get_id_by_name(self, lswitch_name):
         all_lswitches = self.get_all()
-        return self._session.get_from_xml_tree(all_lswitches, 'virtualWire', 'name', lswitch_name, 'objectId')
+        return self._session.getFromXmlTree(all_lswitches, 'virtualWire', 'name', lswitch_name, 'objectId')
 
     def create(self, scope_name, name, description='A Logical Switch', tenantId='undefined', controlPlaneMode=None):
         scope_id = self._session.networkScope.get_id_by_name(scope_name)[0]

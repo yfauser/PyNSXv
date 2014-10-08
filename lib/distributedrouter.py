@@ -16,16 +16,16 @@ class DistributedRouter:
 
     def get_by_name(self, dlr_name):
         all_dlrs = self.get_all()
-        return self._session.get_from_xml_tree(all_dlrs, 'edgeSummary', 'name', dlr_name, 'objectId')
+        return self._session.getFromXmlTree(all_dlrs, 'edgeSummary', 'name', dlr_name, 'objectId')
 
     def create(self, dc, cluster, ds, mgmt_net):
-        vdr_appliance_properties = [{'resourcePoolId': self._session.get_vc_clustermoid(dc, cluster)},
-                                    {'datastoreId': self._session.get_vc_datastoremoid(dc, ds)}]
+        vdr_appliance_properties = [{'resourcePoolId': self._session.getVcenterClusterMoid(dc, cluster)},
+                                    {'datastoreId': self._session.getVcenterDatastoreMoid(dc, ds)}]
         vdr_appliance = [{'appliance': vdr_appliance_properties}]
-        vdr_mgmt_interface_properties = [{'connectedToId': self._session.get_vc_networkmoid(dc, mgmt_net)}]
+        vdr_mgmt_interface_properties = [{'connectedToId': self._session.getVcenterNetworkMoid(dc, mgmt_net)}]
 
         data = {'edge':[]}
-        data['edge'].append({'datacenterMoid': self._session.get_vc_datacentermoid(dc)})
+        data['edge'].append({'datacenterMoid': self._session.getVcenterDatacenterMoid(dc)})
         data['edge'].append({'type': 'distributedRouter'})
         data['edge'].append({'appliances': vdr_appliance})
         data['edge'].append({'mgmtInterface': vdr_mgmt_interface_properties})
