@@ -1,7 +1,7 @@
 __author__ = 'asteer'
 
 
-class LogicalSwitch:
+class LogicalSwitch(object):
     def __init__(self, session):
         self._session = session
 

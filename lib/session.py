@@ -6,6 +6,7 @@ import requests
 import networkscope
 import logicalswitch
 import distributedrouter
+import servicesrouter
 import xmlformatter
 import xml.dom.minidom as md
 import xml.etree.ElementTree as et
@@ -14,7 +15,7 @@ from pyVmomi import vim, vmodl
 import atexit
 
 
-class Session:
+class Session(object):
     def __init__(self, manager, username='admin', password='default', debug=False, verify=False,
                  protocol='https', vcenterIp=None, vcenterUser='root', vcenterPass='vmware'):
         """
@@ -64,6 +65,7 @@ class Session:
         self.networkScope = networkscope.NetworkScope(self)
         self.logicalSwitch = logicalswitch.LogicalSwitch(self)
         self.distributedRouter = distributedrouter.DistributedRouter(self)
+        self.servicesRouter = servicesrouter.ServicesRouter(self)
 
     def do_request(self, method, path, data=None, headers=None, params=None):
         """

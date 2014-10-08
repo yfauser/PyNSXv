@@ -1,7 +1,7 @@
 __author__ = 'asteer'
 
 
-class NetworkScope:
+class NetworkScope(object):
     def __init__(self, session):
         self._session = session
 
