@@ -65,7 +65,7 @@ class Session:
         self.logicalSwitch = logicalswitch.LogicalSwitch(self)
         self.distributedRouter = distributedrouter.DistributedRouter(self)
 
-    def do_request(self, method, path, data=None, headers=None):
+    def do_request(self, method, path, data=None, headers=None, params=None):
         """
         Handle API requests / responses transport
 
@@ -83,7 +83,7 @@ class Session:
             if self._debug:
                 print md.parseString(data).toprettyxml()
 
-        response = self._session.request(method, self._base + path, headers=headers, data=data)
+        response = self._session.request(method, self._base + path, headers=headers, params=params, data=data)
         response.raise_for_status()
         content = response.content
 
@@ -100,7 +100,7 @@ class Session:
             if 'Location' in response.headers:
                 return self.do_request('GET', response.headers['Location'])
             elif 'content-type' in response.headers and response.headers['Content-Type'] == 'application/xml':
-                return et.fromstring(response.content)
+                return et.fromstring(content)
             else:
                 return content
         except Exception as e:
