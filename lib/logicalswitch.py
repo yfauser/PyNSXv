@@ -33,7 +33,7 @@ class LogicalSwitch(object):
         return self._request('DELETE', '/api/2.0/vdn/virtualwires/' + lswitch_id)
 
     def delete_by_name(self, lswitch_name):
-        ids = self.get_by_name(lswitch_name)
+        ids = self.get_id_by_name(lswitch_name)
         if len(ids) > 1:
             raise Exception('lswitch name not unique')
         if len(ids) < 1:

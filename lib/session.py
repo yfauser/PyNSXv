@@ -86,7 +86,11 @@ class Session(object):
                 print md.parseString(data).toprettyxml()
 
         response = self._session.request(method, self._base + path, headers=headers, params=params, data=data)
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except Exception as e:
+            raise Exception("HTTP Request Failed %s" % response.content)
+        
         content = response.content
 
         try:

@@ -18,7 +18,7 @@ class EdgeRouter(object):
         all_edges = self.get_all()
         return self._session.getFromXmlTree(all_edges, 'edgeSummary', 'name', edge_name, 'objectId')
 
-    def create(self, dc_name, cluster_name, ds_name, data):
+    def create(self, dc_name, cluster_name, ds_name, edge_name, data):
         appliance_properties = [{'resourcePoolId': self._session.getVcenterClusterMoid(dc_name, cluster_name)},
                                     {'datastoreId': self._session.getVcenterDatastoreMoid(dc_name, ds_name)}]
 
@@ -28,8 +28,10 @@ class EdgeRouter(object):
             data['edge'][index]['appliances'].append({'appliance': appliance_properties})
         except IndexError as e:
             data['edge'].append({'appliances': [{'appliance': appliance_properties}]})
-
+        
         data['edge'].append({'datacenterMoid': self._session.getVcenterDatacenterMoid(dc_name)})
+        if edge_name:
+            data['edge'].append({'name': edge_name})
 
         return self._request('POST', '/api/4.0/edges', data=data)
 

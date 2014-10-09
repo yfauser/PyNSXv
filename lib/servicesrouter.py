@@ -20,9 +20,8 @@ class ServicesRouter(edgerouter.EdgeRouter):
                         {'remoteAccess': ssh_enabled}]
 
         data = {'edge':[]}
-        data['edge'].append({'name': esg_name})
         data['edge'].append({'appliances': esg_appliance})
         data['edge'].append({'vnics': esg_vnics})
         data['edge'].append({'cliSettings': cli_settings})
 
-        return super(ServicesRouter, self).create(dc_name, cluster_name, ds_name, data)
+        return super(ServicesRouter, self).create(dc_name, cluster_name, ds_name, esg_name, data)
