@@ -14,45 +14,52 @@ class EdgeRouter(object):
     def get_by_id(self, ldr_id):
         return self._request('GET', '/api/4.0/edges/' + ldr_id)
 
-    def get_id_by_name(self, dlr_name):
-        all_dlrs = self.get_all()
-        return self._session.getFromXmlTree(all_dlrs, 'edgeSummary', 'name', dlr_name, 'objectId')
+    def get_id_by_name(self, edge_name):
+        all_edges = self.get_all()
+        return self._session.getFromXmlTree(all_edges, 'edgeSummary', 'name', edge_name, 'objectId')
 
-    def create(self, dc_name, cluster_name, ds_name, mgmt_net_name):
-        vdr_appliance_properties = [{'resourcePoolId': self._session.getVcenterClusterMoid(dc_name, cluster_name)},
+    def create(self, dc_name, cluster_name, ds_name, data):
+        appliance_properties = [{'resourcePoolId': self._session.getVcenterClusterMoid(dc_name, cluster_name)},
                                     {'datastoreId': self._session.getVcenterDatastoreMoid(dc_name, ds_name)}]
-        vdr_appliance = [{'appliance': vdr_appliance_properties}]
-        vdr_mgmt_interface_properties = [{'connectedToId': self._session.getVcenterNetworkMoid(dc_name, mgmt_net_name)}]
 
-        data = {'edge':[]}
+        try:
+            appliance = [x for x in data['edge'] if 'appliances' in x][0]
+            index = data['edge'].index(appliance)
+            data['edge'][index]['appliances'].append({'appliance': appliance_properties})
+        except IndexError as e:
+            data['edge'].append({'appliances': [{'appliance': appliance_properties}]})
+
         data['edge'].append({'datacenterMoid': self._session.getVcenterDatacenterMoid(dc_name)})
-        data['edge'].append({'type': 'distributedRouter'})
-        data['edge'].append({'appliances': vdr_appliance})
-        data['edge'].append({'mgmtInterface': vdr_mgmt_interface_properties})
 
         return self._request('POST', '/api/4.0/edges', data=data)
 
     #TODO - rework this to treat all interfaces as list (even a list of one) can then process single / bulk additions
-    def add_if(self, edge_name, if_name, ls_name, if_ip, if_mask, if_type):
-        vdr_address_group_property = [{'primaryAddress': if_ip}, {'subnetMask': if_mask}]
-        vdr_address_groups = [{'addressGroup': vdr_address_group_property}]
-        vdr_interface_properties = [{'name': if_name},
-                                    {'addressGroups': vdr_address_groups},
+    def add_if(self, edge_name, if_name, ls_name, if_ip, if_mask, if_type, if_index=None):
+        address_group_property = [{'primaryAddress': if_ip}, {'subnetMask': if_mask}]
+        address_groups = [{'addressGroup': address_group_property}]
+        interface_properties = [{'name': if_name},
+                                    {'addressGroups': address_groups},
                                     {'mtu': '1500'},
                                     {'type': if_type},
                                     {'isConnected': 'true'},
                                     {'connectedToId': self._session.logicalSwitch.get_id_by_name(ls_name)[0]}]
 
-        data = {'interfaces':[]}
-        data['interfaces'].append({'interface': vdr_interface_properties})
+        if if_index:
+            interface_properties.append({'index': if_index})
+            data = {'vnics':[]}
+            data['vnics'].append({'vnic': interface_properties})
+            path = '/vnics/'
+        else:
+            data = {'interfaces':[]}
+            data['interfaces'].append({'interface': interface_properties})
+            path = '/interfaces'
 
         edge_id = self.get_id_by_name(edge_name)[0]
 
         parameters = {'action': 'patch'}
 
-        return self._request('POST', '/api/4.0/edges/' + edge_id + '/interfaces',
+        return self._request('POST', '/api/4.0/edges/' + edge_id + path,
                              params=parameters, data=data)
-
 
     def enable_OSPF(self,edge_id, router_id, protocol_address, forwarding_address, ospf_area,
                    ospf_vnic_index, ospf_vnic_helloInterval=10, ospf_vnic_deadInterval=40,
