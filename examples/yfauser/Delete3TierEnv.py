@@ -10,7 +10,10 @@ default_transport_zone_name = 'TZ1'
 # Create a new Session - debug is enabled so will be very noisy
 s = session.Session('192.168.178.211', debug=True)
 
-env_suffix = '526cc2e4f7ab'
+env_suffix = 'a2b594486cf9'
+
+# delete the Service Gateway Edge
+s.servicesRouter.delete_by_name('esg-' + env_suffix)
 
 # delete the Distributed Logical Router
 s.distributedRouter.delete_by_name('dlr-' + env_suffix)

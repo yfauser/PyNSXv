@@ -21,7 +21,7 @@ env_suffix = env_uuid.split('-')[4]
 # list of network prefixes
 net_prefixes = ['web-tier-','app-tier-','db-tier-','admin1-tier-','admin2-tier-', 'transit-net-']
 
-# Create the needed logical switches and the empty ip interface deffinitions for the logical router 
+# Create the needed logical switches and the empty ip interface definitions for the logical router 
 env_ls_dict={}
 for name in net_prefixes:
     env_ls_dict[name+env_suffix] = s.logicalSwitch.create(default_transport_zone_name, name+env_suffix)
@@ -32,7 +32,7 @@ dlr = s.distributedRouter.create(datacenter_name, cluster_name, datastore_name, 
 # Craft the distributed router Interfaces properties
 vdr_ipif_web = {'if_name': 'web-tier', 'ls_id': env_ls_dict['web-tier-'+env_suffix].find('objectId').text,
                 'if_ip': '172.16.102.1', 'if_mask': '255.255.255.0', 'if_type': 'internal'}
-vdr_ipif_app = {'if_name': 'web-app', 'ls_id': env_ls_dict['app-tier-'+env_suffix].find('objectId').text,
+vdr_ipif_app = {'if_name': 'app-tier', 'ls_id': env_ls_dict['app-tier-'+env_suffix].find('objectId').text,
                 'if_ip': '172.16.103.1', 'if_mask': '255.255.255.0', 'if_type': 'internal'}
 vdr_ipif_db =  {'if_name': 'db-tier', 'ls_id': env_ls_dict['db-tier-'+env_suffix].find('objectId').text,
                 'if_ip': '172.16.104.1', 'if_mask': '255.255.255.0', 'if_type': 'internal'}
@@ -48,4 +48,41 @@ vdr_if_list = [vdr_ipif_web, vdr_ipif_app, vdr_ipif_db, vdr_ipif_admin1, vdr_ipi
 vdr_name = 'dlr-' + env_suffix
 vdr_interfaces = s.distributedRouter.add_if(vdr_name, vdr_if_list)
 
+# Create a new Services Edge Gateway
+esg_name = 'esg-' + env_suffix
+esg = s.servicesRouter.create(datacenter_name, cluster_name, datastore_name, 'esg-' + env_suffix, managment_network_portgroup_name)
 
+
+#env_suffix = ''
+#esg_name = 'esg-' + env_suffix
+#env_ls_dict={}
+
+# Craft the edge gateway services Interfaces Properties
+
+uplink_portgroup_moid = s.getVcenterNetworkMoid(datacenter_name, managment_network_portgroup_name)
+
+esg_ipif_uplink = {'if_index': '0',
+                   'if_name': 'uplink-interface',
+                   'ls_id': uplink_portgroup_moid,
+                   'if_ip': '192.168.178.198',
+                   'if_mask': '255.255.255.0',
+                   'if_type': 'uplink'}
+
+esg_ipif_transit = {'if_index': '1',
+                    'if_name': 'transit-to-vdr',
+                    'ls_id': env_ls_dict['transit-net-'+env_suffix].find('objectId').text,
+                    'if_ip': '172.16.101.3',
+                    'if_mask': '255.255.255.0',
+                    'if_type': 'internal'}
+'''
+esg_ipif_transit = {'if_index': '1',
+                    'if_name': 'transit-to-vdr',
+                    'ls_id': 'network-32',
+                    'if_ip': '172.16.101.3',
+                    'if_mask': '255.255.255.0',
+                    'if_type': 'internal'}
+'''
+esg_if_list = [esg_ipif_uplink, esg_ipif_transit]
+
+# Configure the Edge Services Gateway Uplink and the Transit Link IP Interfaces
+esg_interfaces = s.servicesRouter.add_if(esg_name, esg_if_list)

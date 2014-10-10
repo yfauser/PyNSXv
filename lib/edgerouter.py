@@ -59,21 +59,24 @@ class EdgeRouter(object):
             interface_properties.append({'mtu': '1500'})
             interface_properties.append({'type': interface['if_type']})
             interface_properties.append({'isConnected': 'true'})
-            interface_properties.append({'connectedToId': interface['ls_id']})
             
             if ('if_index') in interface:
                 interface_properties.append({'index': interface['if_index']})
                 if data !=None: 
+                    interface_properties.append({'portgroupId': interface['ls_id']})
                     data['vnics'].append({'vnic': interface_properties})
                 else:
                     data = {'vnics':[]}
+                    interface_properties.append({'portgroupId': interface['ls_id']})
                     data['vnics'].append({'vnic': interface_properties})
                 path = '/vnics/'
             else:
                 if data !=None:
+                    interface_properties.append({'connectedToId': interface['ls_id']})
                     data['interfaces'].append({'interface': interface_properties})
                 else:
                     data = {'interfaces':[]}
+                    interface_properties.append({'connectedToId': interface['ls_id']})
                     data['interfaces'].append({'interface': interface_properties})
                 path = '/interfaces/'
                 
