@@ -25,7 +25,7 @@ for name in ['web-tier-','app-tier-','db-tier-','admin1-tier-','admin2-tier-']:
     env_ls_dict[name+env_suffix] = s.logicalSwitch.create(default_transport_zone_name, name+env_suffix)
                      
 # Create a new distributer logical router
-dlr = s.distributedRouter.create(datacenter_name, cluster_name, datastore_name, env_suffix, managment_network_portgroup_name)
+dlr = s.distributedRouter.create(datacenter_name, cluster_name, datastore_name, 'dlr-' + env_suffix, managment_network_portgroup_name)
 
 
 
