@@ -35,27 +35,48 @@ class EdgeRouter(object):
 
         return self._request('POST', '/api/4.0/edges', data=data)
 
-    #TODO - rework this to treat all interfaces as list (even a list of one) can then process single / bulk additions
-    def add_if(self, edge_name, if_name, ls_name, if_ip, if_mask, if_type, if_index=None):
-        address_group_property = [{'primaryAddress': if_ip}, {'subnetMask': if_mask}]
-        address_groups = [{'addressGroup': address_group_property}]
-        interface_properties = [{'name': if_name},
-                                    {'addressGroups': address_groups},
-                                    {'mtu': '1500'},
-                                    {'type': if_type},
-                                    {'isConnected': 'true'},
-                                    {'connectedToId': self._session.logicalSwitch.get_id_by_name(ls_name)[0]}]
-
-        if if_index:
-            interface_properties.append({'index': if_index})
-            data = {'vnics':[]}
-            data['vnics'].append({'vnic': interface_properties})
-            path = '/vnics/'
-        else:
-            data = {'interfaces':[]}
-            data['interfaces'].append({'interface': interface_properties})
-            path = '/interfaces'
-
+    
+    def add_if(self, edge_name, if_list):
+        ''' This method creates the Interfaces on a router (DLR or Services Edge 
+        edge_id: This is the edge id as returned by the create method
+        if_list: This is a list of dictionaries containing interfes and their properties, these are the items in the dict:
+            if_name: This is the human readable name set for the Interface
+            ls_id: This is the logical switch id (aka vwire und virtual wire ID) as returned by the LogicalSwitch.Create Method
+            if_ip: This is the Interface IP Address
+            if_mask: This is the Interface Subnet Mask
+            if_type: This is the type of Interface in NSX 6.x this can either be 'internal' or 'uplink', 
+                     where uplink is the upstream interface that can have dynamic routing applied
+            if_index: This is the edge interface Index. Values are 0..9
+        '''
+        data = None
+        for interface in if_list:
+            address_group_property = [ {'primaryAddress': interface['if_ip']}, {'subnetMask': interface['if_mask']} ]
+            address_groups = [ {'addressGroup':  address_group_property} ]
+            
+            interface_properties = []
+            interface_properties.append({'name': interface['if_name']})
+            interface_properties.append({'addressGroups': address_groups})
+            interface_properties.append({'mtu': '1500'})
+            interface_properties.append({'type': interface['if_type']})
+            interface_properties.append({'isConnected': 'true'})
+            interface_properties.append({'connectedToId': interface['ls_id']})
+            
+            if ('if_index') in interface:
+                interface_properties.append({'index': interface['if_index']})
+                if data !=None: 
+                    data['vnics'].append({'vnic': interface_properties})
+                else:
+                    data = {'vnics':[]}
+                    data['vnics'].append({'vnic': interface_properties})
+                path = '/vnics/'
+            else:
+                if data !=None:
+                    data['interfaces'].append({'interface': interface_properties})
+                else:
+                    data = {'interfaces':[]}
+                    data['interfaces'].append({'interface': interface_properties})
+                path = '/interfaces/'
+                
         edge_id = self.get_id_by_name(edge_name)[0]
 
         parameters = {'action': 'patch'}
