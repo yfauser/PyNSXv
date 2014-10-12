@@ -87,61 +87,80 @@ class EdgeRouter(object):
         return self._request('POST', '/api/4.0/edges/' + edge_id + path,
                              params=parameters, data=data)
 
-    def enable_OSPF(self,edge_id, router_id, protocol_address, forwarding_address, ospf_area,
-                   ospf_vnic_index, ospf_vnic_helloInterval=10, ospf_vnic_deadInterval=40,
-                   ospf_vnic_priority=128, ospf_vnic_cost=None, ospf_area_type='normal',
-                   authentication_type=None, authentication_password='vmware123', ospf_redist_from_list=[]):
-        ''' This method is used to configure the OSPF Area and the Interfaces used for/with OSPF
+    def enable_OSPF(self, edge_id, router_id, ospf_area_list, ospf_interface_list, ospf_redist_from_list=None, default_originate=None, vdr_data=None):
+        # TODO: At some point it would also be good to have the ability to set prefix filters for the redistribution
+        ''' This method is used to configure the OSPF Areas, Interfaces, and with it enabled OSPF on the Edge Gateways or VDR Control VM
         edge_id: This is the edge id as returned by the create method
-        router_id: This is the OSPF Router ID for the OSPF Database, usually this is set to be the same IP as the protocol_adress.
-        protocol_address: This is the IP that the VDR uses to source OSPF Hellos, LSRs, etc. Basically this is the IP of the logical router control VM
-        forwarding_address: This is the next hop IP for the advertised routes. This is the shared VIP of the VDR in the hypervisor kernel modules
-        ospf_area: This is the OSPF Area ID, Mandatory and unique. Valid values are 0-4294967295
-        ospf_vnic_index: This is the vnic Index of the VDR Uplink used for OSPF. With the VDR only one Interface can be used as an OSPF Interface. Example: '0'
-        ospf_vnic_helloInterval: Optional. Default 10 sec. Valid values are 1-255
-        ospf_vnic_deadInterval: Optional. Default 40 sec. Valid values are 1-65535
-        ospf_vnic_priority: Optional. Default 128. Valid values are 0-255
-        ospf_vnic_cost: Optional. Auto based on interface speed. Valid values are 1-65535
-        ospf_area_type: Optional. Default is normal. Valid inputs are normal, nssa
-        authentication_type: Optional. When not specified, its "none" authentication. Valid values are none, password , md5
-        authentication_password: Value as per the type of authentication
-        ospf_redist_from_list: This is an Optional list of sources to redistribute into OSPF, default is an empty list,
-        accepted values are isis, ospf, bgp, static and connected
+        ospf_area_list: This is a List of Dictionaries containing OSPF Area definitions and their properties
+        ospf_interface_list: This is a list of Dictionaries containing OSPF Interfaces and their Timers
+        ospf_area_list properties set in the dictionaries:
+          ospf_area: This is the OSPF Area ID, Mandatory and unique. Valid values are 0-4294967295
+          ospf_area_type: Optional. Default is normal. Valid inputs are normal, nssa
+          authentication_type: Optional. When not specified, its "none" authentication. Valid values are none, password , md5
+          authentication_password: Value as per the type of authentication
+        ospf_interface_list properties set in the dictionaries:  
+          vnic_index: This is the vnic Index of the VDR Uplink used for OSPF. With the VDR only one Interface can be used as an OSPF Interface. Example: '0'
+          helloInterval: Optional. Default 10 sec. Valid values are 1-255
+          deadInterval:  Optional. Default 40 sec. Valid values are 1-65535
+          priority: Optional. Default 128. Valid values are 0-255
+          cost: Optional. Auto based on interface speed. Valid values are 1-65535
+        ospf_redist_from_list: This is an Optional list of sources to redistribute into OSPF, default is an empty list, 
+                                accepted values are isis, ospf, bgp, static and connected
+        default_originate: users can configure edge router to publish default route by setting it to true
         '''
-        ospf_interface_config = [{'vnic': ospf_vnic_index},
-                                 {'areaId': ospf_area},
-                                 {'helloInterval': ospf_vnic_helloInterval},
-                                 {'deadInterval': ospf_vnic_deadInterval},
-                                 {'priority': ospf_vnic_priority}]
-
-        if ospf_vnic_cost is not None:
-            ospf_interface_config.append( {'cost': ospf_vnic_cost} )
-
-        ospf_interfaces = [{'ospfInterface': ospf_interface_config}]
-        routing_global_config = [{'routerId' : router_id }]
-        ospf_authentication_config = [{'type': authentication_type}]
-
-        if authentication_type is not None:
-            ospf_authentication_config.append({'value': authentication_password})
-
-        ospf_area_config = [{'ospfArea': [{'areaId': ospf_area},
-                                          {'type': ospf_area_type},
-                                          {'authentication': ospf_authentication_config}]}]
-
-        if len(ospf_redist_from_list) > 0:
+        ospf_config = []
+        ospf_config.append({'enabled': 'true'})
+        
+        if vdr_data != None: 
+            for ospf_vdr_property in vdr_data:
+                ospf_config.append(ospf_vdr_property)
+            
+        routing_global_config = [ {'routerId' : router_id } ]
+            
+        ospf_areas = []
+        for ospf_area in ospf_area_list:
+            if ('authentication_type') not in ospf_area: ospf_area['authentication_type'] = 'none'
+            if ('ospf_area_type') not in ospf_area: ospf_area['ospf_area_type'] = 'normal'
+            ospf_authentication_config = [ {'type': ospf_area['authentication_type']} ]
+            if ospf_area['authentication_type'] != 'none': ospf_authentication_config.append( {'value': ospf_area['authentication_password'] } )
+            ospf_area_properties = []
+            ospf_area_properties.append({'areaId': ospf_area['ospf_area']})
+            ospf_area_properties.append({'type': ospf_area['ospf_area_type']})
+            ospf_area_properties.append({'authentication': ospf_authentication_config})
+            ospf_areas.append( {'ospfArea': ospf_area_properties})
+        
+        ospf_config.append({'ospfAreas': ospf_areas})
+        
+        ospf_interfaces = []
+        for interface in ospf_interface_list:
+            if ('helloInterval') not in interface: interface['helloInterval']= '10'
+            if ('deadInterval') not in interface: interface['deadInterval']= '40'
+            if ('priority') not in interface: interface['priority']= '128'
+            if ('cost') not in interface: interface['cost']= None
+            ospf_interface_config = []
+            ospf_interface_config.append({'vnic': interface['vnic_index']})
+            ospf_interface_config.append({'areaId': interface['ospf_area']})
+            ospf_interface_config.append({'helloInterval': interface['helloInterval']}) 
+            ospf_interface_config.append({'deadInterval': interface['deadInterval']}) 
+            ospf_interface_config.append({'priority': interface['priority']}) 
+            if interface['cost'] != None: ospf_interface_config.append( {'cost': interface['cost'] } )
+            ospf_interfaces.append( {'ospfInterface': ospf_interface_config} )
+        
+        ospf_config.append({'ospfInterfaces': ospf_interfaces})
+        
+        if ospf_redist_from_list==None:  ospf_redist_from_list=[]
+        if len(ospf_redist_from_list) != 0:
             ospf_redistribution_rules = []
             for redist_from in ospf_redist_from_list:
-                ospf_redistribution_rules.append({redist_from: 'true'})
-            ospf_redistribution_property = [{'enabled': 'true'},
-                                            {'rules': [{'rule': [{'from': ospf_redistribution_rules},
-                                                                 {'action': 'permit'}]}]}]
-        else:
-            ospf_redistribution_property = [{'enabled': 'false'}]
-
-        ospf_config = [ {'enabled': 'true'}, {'forwardingAddress': forwarding_address},
-                        {'protocolAddress': protocol_address}, {'ospfAreas': ospf_area_config},
-                        {'ospfInterfaces': ospf_interfaces}, {'redistribution': ospf_redistribution_property} ]
-
+                ospf_redistribution_rules.append({ redist_from: 'true'})
+            ospf_redistribution_property = [{'enabled': 'true'}, {'rules': [ {'rule': [ {'from': ospf_redistribution_rules}, {'action': 'permit'} ] } ] } ]
+        else: ospf_redistribution_property = [{'enabled': 'false'}]
+            
+        ospf_config.append({'redistribution': ospf_redistribution_property})
+        
+        if default_originate != None: 
+            ospf_config.append({'defaultOriginate' : default_originate })     # Not sure if this also works for NSX 6.0, might be new in 6.1
+        
         data = {'routing':[]}
         data['routing'].append({'routingGlobalConfig': routing_global_config})
         data['routing'].append({'ospf': ospf_config})

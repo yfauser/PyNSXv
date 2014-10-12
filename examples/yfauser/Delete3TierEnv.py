@@ -10,13 +10,19 @@ default_transport_zone_name = 'TZ1'
 # Create a new Session - debug is enabled so will be very noisy
 s = session.Session('192.168.178.211', debug=True)
 
-env_suffix = 'a2b594486cf9'
+env_suffix = '930a00c545b9'
 
 # delete the Service Gateway Edge
-s.servicesRouter.delete_by_name('esg-' + env_suffix)
+try:
+    s.servicesRouter.delete_by_name('esg-' + env_suffix)
+except:
+    print "Error deleting Edge Services Gateway, might not be found"
 
 # delete the Distributed Logical Router
-s.distributedRouter.delete_by_name('dlr-' + env_suffix)
+try:
+    s.distributedRouter.delete_by_name('dlr-' + env_suffix)
+except:
+    print "Error deleting VDR Control VM, might not be found"    
 
 # list of network prefixes
 net_prefixes = ['web-tier-','app-tier-','db-tier-','admin1-tier-','admin2-tier-', 'transit-net-']
@@ -24,7 +30,10 @@ net_prefixes = ['web-tier-','app-tier-','db-tier-','admin1-tier-','admin2-tier-'
 # delete the logical switches
 for name in net_prefixes:
     ls_name = name + env_suffix
-    s.logicalSwitch.delete_by_name(ls_name)
+    try:
+        s.logicalSwitch.delete_by_name(ls_name)
+    except:
+        print "error while deleting logical switch " + ls_name + " might not be not found"
 
 
 
