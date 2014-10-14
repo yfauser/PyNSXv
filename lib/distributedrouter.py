@@ -30,5 +30,7 @@ class DistributedRouter(edgerouter.EdgeRouter):
         vdr_ospf_data.append({'forwardingAddress': forwarding_address})
         vdr_ospf_data.append({'protocolAddress': protocol_address})
         
-        return super(DistributedRouter, self).enable_OSPF(edge_id, router_id, ospf_area_list, ospf_interface_list, ospf_redist_from_list, default_originate, vdr_data=vdr_ospf_data)
+        return super(DistributedRouter, self).enable_OSPF(edge_id, router_id, ospf_area_list, ospf_interface_list,
+                                                          ospf_redist_from_list, default_originate,
+                                                          vdr_data=vdr_ospf_data)
         
