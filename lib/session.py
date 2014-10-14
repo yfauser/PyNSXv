@@ -88,9 +88,13 @@ class Session(object):
         response = self._session.request(method, self._base + path, headers=headers, params=params, data=data)
         try:
             response.raise_for_status()
-        except Exception as e:
-            raise Exception("HTTP Request Failed %s" % response.content)
-        
+        except requests.exceptions.RequestException as e:
+            if e.response.headers['Content-Type'] == 'application/xml':
+                print md.parseString(e.response.content).toprettyxml()
+            else:
+                print e.response.content
+            raise e
+
         content = response.content
 
         try:
