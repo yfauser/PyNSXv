@@ -76,10 +76,9 @@ esg_if_list = [esg_ipif_uplink, esg_ipif_transit]
 esg_interfaces = s.servicesRouter.add_if(esg_name, esg_if_list)
 
 # In the next step we will configure OSPF on the VDR
-vdr_uplink_vnic_index = s.getFromXmlString(vdr_interfaces, 'vnic' ,'name', vdr_ipif_transit['if_name'], 'index')
+vdr_uplink_vnic_index = s.getFromXmlTree(vdr_interfaces, 'interface' ,'name', vdr_ipif_transit['if_name'], 'index')
 print "the uplink-name is " + vdr_ipif_transit['if_name']
 print " and its vnic index is " + vdr_uplink_vnic_index[0]
-print vdr_interfaces
 
 vdr_router_id = "172.16.101.2"
 vdr_protocol_address = "172.16.101.2"
@@ -88,7 +87,7 @@ vdr_ospf_area_list = [{'ospf_area': "100"}]
 vdr_ospf_interface_list = [{'vnic_index': vdr_uplink_vnic_index[0], 'ospf_area': "100"}]
 vdr_ospf_redist_from_list = ['connected']
 
-vdr = s.distributedRouter.enable_OSPF(vdr, vdr_router_id, vdr_protocol_address, vdr_forwarding_address, 
+vdr_ospf = s.distributedRouter.enable_OSPF(vdr, vdr_router_id, vdr_protocol_address, vdr_forwarding_address, 
                                       vdr_ospf_area_list, vdr_ospf_interface_list, vdr_ospf_redist_from_list)
 
 # In the next Step we are configuring OSPF on the ESG
@@ -100,5 +99,5 @@ esg_ospf_interface_uplink_dict = {'vnic_index': "0", 'ospf_area': "0"}
 esg_ospf_interface_transit_dict = {'vnic_index': "1", 'ospf_area': "100"}
 esg_ospf_interface_list = [esg_ospf_interface_transit_dict, esg_ospf_interface_uplink_dict]
 
-esg = s.servicesRouter.enable_OSPF(esg, esg_router_id, esg_ospf_area_list, esg_ospf_interface_list, default_originate="true")
+esg_ospf = s.servicesRouter.enable_OSPF(esg, esg_router_id, esg_ospf_area_list, esg_ospf_interface_list, default_originate="true")
 

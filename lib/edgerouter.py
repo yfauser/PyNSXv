@@ -13,6 +13,9 @@ class EdgeRouter(object):
 
     def get_by_id(self, ldr_id):
         return self._request('GET', '/api/4.0/edges/' + ldr_id)
+    
+    def get_interfaces_by_id(self, ldr_id):
+        return self._request('GET', '/api/4.0/edges/' + ldr_id + '/interfaces/' )
 
     def get_id_by_name(self, edge_name):
         all_edges = self.get_all()
