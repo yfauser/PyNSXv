@@ -10,7 +10,7 @@ default_transport_zone_name = 'TZ1'
 # Create a new Session - debug is enabled so will be very noisy
 s = session.Session('192.168.178.211', debug=True)
 
-env_suffix = '8e26762cf679'
+env_suffix = '4a216fc95a95'
 
 # delete the Service Gateway Edge
 try:
@@ -20,7 +20,7 @@ except:
 
 # delete the Distributed Logical Router
 try:
-    s.distributedRouter.delete_by_name('dlr-' + env_suffix)
+    s.distributedRouter.delete_by_name('vdr-' + env_suffix)
 except:
     print "Error deleting VDR Control VM, might not be found"    
 
