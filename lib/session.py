@@ -89,7 +89,13 @@ class Session(object):
         try:
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            if e.response.headers['Content-Type'] == 'application/xml':
+            # Hack to get around invalid location header returned from DHCP relay config
+            if e.response.status_code == 404 and 'dhcp/config/relay' in e.response.url:
+                print 'WARNING: Working around DHCP relay brokenness'
+                from urlparse import urlparse
+                url = urlparse(e.response.url[:-5])
+                return self.do_request('GET', url.path)
+            elif e.response.headers['Content-Type'] == 'application/xml':
                 print md.parseString(e.response.content).toprettyxml()
             else:
                 print e.response.content
