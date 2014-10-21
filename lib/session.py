@@ -134,6 +134,22 @@ class Session(object):
             if element.find(matchKey).text == matchValue:
                 response.append(element.find(getKey).text)
         return response
+    
+    def listFromXmlTree(self, xmlTree, matchKey):
+        response = []
+        rootElement = xmlTree
+        for element in rootElement.iter(matchKey):
+            response.append(element.text)
+        return response
+    
+    def getSubXmlTree(self, xmlTree, matchType, matchKey, matchValue, getKey):
+        response=[]
+        rootElement = xmlTree
+        for element in rootElement.iter(matchType):
+            if element.find(matchKey).text == matchValue:
+                for sub_element in element.iter(getKey):
+                    response.append(sub_element)
+        return response
 
     def getVcenterDatacenterMoid(self, datacenterName):
         return str(self._getVcenterDatacenterFolder(datacenterName)._moId)
@@ -152,6 +168,17 @@ class Session(object):
         for network in self._getVcenterDatacenterFolder(datacenterName).networkFolder.childEntity:
             if network.name == networkName:
                 return str(network._moId)
+            
+    def getVcenterPGname(self, datacenterName, pg_moid):
+        for network in self._getVcenterDatacenterFolder(datacenterName).networkFolder.childEntity:
+            if network._moId == pg_moid:
+                return str(network.name)
+            
+    def changeVcenterPGname(self, datacenterName, pg_moid, new_name):
+        for network in self._getVcenterDatacenterFolder(datacenterName).networkFolder.childEntity:
+            if network._moId == pg_moid:
+                network.Rename_Task(new_name)
+                return str(network.name)
 
     def _getVcenterDatacenterFolder(self, datacenterName):
         if self._vcenterContent == None:

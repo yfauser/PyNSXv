@@ -11,6 +11,7 @@ datacenter_name = 'YF-Homelab'
 cluster_name = 'Nested-Edge-Cluster'
 datastore_name = 'FauserNAS'
 managment_network_portgroup_name = 'VM Network'
+compute_vds_name = 'Nested-Transport-VDS'
 
 # Create a new Session - debug is enabled so will be very noisy
 s = session.Session('192.168.178.211', vcenterIp='192.168.178.210', debug=True)
@@ -21,11 +22,17 @@ env_suffix = env_uuid.split('-')[4]
 # list of network prefixes
 net_prefixes = ['web-tier-','app-tier-','db-tier-','admin1-tier-','admin2-tier-', 'transit-net-']
 
-# Create the needed logical switches and the empty ip interface definitions for the logical router 
+# Create the needed logical switches and the empty ip interface definitions for the logical router
+# also get the portgroup IDs for those logical switches
 env_ls_dict={}
+ls_pg_dict={}
 for name in net_prefixes:
     env_ls_dict[name+env_suffix] = s.logicalSwitch.create(default_transport_zone_name, name+env_suffix)
-                     
+    ls_pg_dict[name+env_suffix] = s.logicalSwitch.get_pg_id_by_name(name+env_suffix, compute_vds_name)
+
+for pg_id in ls_pg_dict.keys():
+    s.changeVcenterPGname(datacenter_name, ls_pg_dict[pg_id], pg_id)
+
 # Create a new distributer logical router
 vdr = s.distributedRouter.create(datacenter_name, cluster_name, datastore_name, 'vdr-' + env_suffix, managment_network_portgroup_name)
 

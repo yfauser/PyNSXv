@@ -17,7 +17,14 @@ class LogicalSwitch(object):
     def get_id_by_name(self, lswitch_name):
         all_lswitches = self.get_all()
         return self._session.getFromXmlTree(all_lswitches, 'virtualWire', 'name', lswitch_name, 'objectId')
-
+    
+    def get_pg_id_by_name(self, lswitch_name, vds_name):
+        all_lswitches = self.get_all()
+        vds_context_backings = self._session.getSubXmlTree(all_lswitches, 'virtualWire', 'name', lswitch_name, 'vdsContextWithBacking')
+        for vds_context_backing in vds_context_backings:
+            if len(self._session.getFromXmlTree(vds_context_backing, 'switch', 'name', vds_name, 'name')) > 0:
+                return self._session.listFromXmlTree(vds_context_backing, 'backingValue')[0]
+        
     def create(self, scope_name, name, description='A Logical Switch', tenantId='undefined', controlPlaneMode=None):
         scope_id = self._session.networkScope.get_id_by_name(scope_name)[0]
         data = {'virtualWireCreateSpec':[]}
