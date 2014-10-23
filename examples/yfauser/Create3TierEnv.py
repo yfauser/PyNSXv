@@ -125,5 +125,9 @@ interface_index_list = [vdr_web_vnic_index[0], vdr_app_vnic_index[0], vdr_db_vni
 
 s.distributedRouter.DHCP_relay(vdr_id, dhcp_server_list, interface_index_list)
 
+# Open the ESG Firewall
+default_policy = 'accept'
+default_logging = 'true'
 
+s.servicesRouter.fwRuleTable(esg_id, default_policy, default_logging)
 
