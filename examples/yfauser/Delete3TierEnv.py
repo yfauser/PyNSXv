@@ -10,7 +10,7 @@ default_transport_zone_name = 'TZ1'
 # Create a new Session - debug is enabled so will be very noisy
 s = session.Session('192.168.178.211', debug=True)
 
-env_suffix = '37c5851d3c9e'
+env_suffix = 'fb980e79c1e4'
 
 # delete the Service Gateway Edge
 try:

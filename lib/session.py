@@ -93,7 +93,15 @@ class Session(object):
             if e.response.status_code == 404 and 'dhcp/config/relay' in e.response.url:
                 print 'WARNING: Working around DHCP relay brokenness'
                 from urlparse import urlparse
-                url = urlparse(e.response.url[:-6])
+                backwards_url = e.response.url[::-1]
+                str_to_strip = ''
+                for char in backwards_url:
+                    if char != '/': 
+                        str_to_strip = str_to_strip + char
+                    else:
+                        str_to_strip = str_to_strip[::-1]
+                        break
+                url = urlparse(e.response.url.rstrip('/' + str_to_strip))
                 return self.do_request('GET', url.path)
             elif e.response.headers['Content-Type'] == 'application/xml':
                 print md.parseString(e.response.content).toprettyxml()

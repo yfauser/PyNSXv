@@ -5,7 +5,7 @@ Created on 20.10.2014
 '''
 import PyNSXv.lib.session as session
 
-env_suffix = '37c5851d3c9e'
+env_suffix = '1069e4d74f3e'
 
 s = session.Session('192.168.178.211', vcenterIp='192.168.178.210', debug=True)
 

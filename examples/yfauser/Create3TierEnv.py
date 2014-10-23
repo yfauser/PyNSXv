@@ -19,6 +19,7 @@ s = session.Session('192.168.178.211', vcenterIp='192.168.178.210', debug=True)
 # Create halfway unique ID Suffix to identify the Environment Instance
 env_uuid = uuid.uuid4().__str__()
 env_suffix = env_uuid.split('-')[4]
+
 # list of network prefixes
 net_prefixes = ['web-tier-','app-tier-','db-tier-','admin1-tier-','admin2-tier-', 'transit-net-']
 
