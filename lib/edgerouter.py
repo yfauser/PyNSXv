@@ -229,6 +229,27 @@ class EdgeRouter(object):
         data['relay'].append({'relayAgents': relay_agents})
 
         return self._request('PUT', '/api/4.0/edges/' + edge_id + '/dhcp/config/relay', data=data)
+    
+    def fwRuleTable(self, edge_id, default_policy=None, default_logging=None):
+        ''' This method configures the Edge Firewall rules. Note: For the DLR it will apply to the control plane only.
+        edge_id: This is the edge id as returned by the create method
+        default_policy: This sets the default Firewall policy. Mandatory. Possible values are accept|deny|reject 
+        default_logging: This sets the default logging policy, Defaults to false 
+        '''
+        default_policy_properties = []
+        if default_policy != None: 
+            default_policy_properties.append({'action': default_policy})
+        else:
+            default_policy_properties.append({'action': 'deny'})
+        if default_logging != None: 
+            default_policy_properties.append({'loggingEnabled': default_logging})
+        else:
+            default_policy_properties.append({'loggingEnabled': 'false'})
+        
+        data = {'firewall': []}
+        data['firewall'].append({'defaultPolicy': default_policy_properties})
+        
+        return self._request('PUT', '/api/4.0/edges/' + edge_id + '/firewall/config', data=data)
 
     def delete(self, dlr_id):
         return self._request('DELETE', '/api/4.0/edges/' + dlr_id)
