@@ -179,6 +179,11 @@ class Session(object):
             if network._moId == pg_moid:
                 network.Rename_Task(new_name)
                 return str(network.name)
+    
+    def getVcenterVMMoid(self, datacenterName, VMName):
+        for vm in self._getVcenterDatacenterFolder(datacenterName).vmFolder.childEntity:
+            if vm.name == VMName:
+                return str(vm._moId)
 
     def _getVcenterDatacenterFolder(self, datacenterName):
         if self._vcenterContent == None:
