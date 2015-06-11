@@ -9,12 +9,12 @@ import uuid
 default_transport_zone_name = 'TZ1'
 datacenter_name = 'YF-Homelab'
 cluster_name = 'Nested-Edge-Cluster'
-datastore_name = 'FauserNAS'
+datastore_name = 'WDNASVMs'
 managment_network_portgroup_name = 'VM Network'
 compute_vds_name = 'Nested-Transport-VDS'
 
 # Create a new Session - debug is enabled so will be very noisy
-s = session.Session('192.168.178.211', vcenterIp='192.168.178.210', debug=True)
+s = session.Session('192.168.178.211', vcenterIp='192.168.178.210',vcenterPass='Vcdx-NV14!', debug=True)
 
 # Create halfway unique ID Suffix to identify the Environment Instance
 env_uuid = uuid.uuid4().__str__()
