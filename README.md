@@ -1,6 +1,11 @@
 # PyNSXv Library
 This is a Python Library for VMWare's NSX for vSphere Product. The aims of this project is to provide and easy to use, object based library to roll out components of NSX-v like logical switches, distributed logical routers, edge services gateway, etc.
 
+# NOTE: This project is discontinued 
+Please check the following project as a follow up on PyNSXv:
+http://github.com/vmware/nsxramlclient
+
+
 How to Install
 ==============
 
@@ -63,8 +68,13 @@ So in the most simple case, when default users and paswords are used, the sessio
 If the default usernames and passwords are changed, you need to specify them, e.g.:
 ```s = session.Session('192.168.178.211', password='greatotherpassword', debug=True)```
 
+# LICENSE
 
+Copyright (c) 2014 Yves Fauser, Adrian Steer
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-**MORE DOCUMENTATION TO FOLLOW**
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
